@@ -99,7 +99,7 @@ def setTime(dataText):
 
 
 def setPath(username):
-    namae = re.split('\n', driver.find_elements_by_xpath('//a[@href="' + username + '"]')[1].text)[0]
+    namae = re.split('\n', driver.find_elements_by_xpath('//a[@href="/' + username + '"]')[1].text)[0]
     path = namae + '(@' + username + ')_Twitter'
     path = re.sub(r'[\\/:*?"<>|]', '', path)
     return path
@@ -109,34 +109,60 @@ if __name__ == '__main__':
     pic_list = []
     datetime = '0000-00-00 0000'
     path = 'save'
+    global driver, PicUrl, username, dataText, user_url_name
 
     print('tweet_saver')
     print('Author  :  Nakateru (2021.03.08)')
     FirstUrl = input('Input tweet URL:')
-    options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
-    options.add_experimental_option('excludeSwitches', ['enable-automation'])
-    options.add_argument("--lang=en")
-    options.add_argument(r'user-data-dir=C:\Users\[username]\AppData\Local\Google\Chrome\User Data')
-    driver = webdriver.Chrome(chrome_options=options)
 
-    PicUrl = re.split('twitter.com', FirstUrl)[1]
-    username = re.split('/status/', PicUrl)[0]
-    # print(PicUrl)
+    try:
+        options = webdriver.ChromeOptions()
+        options.add_argument('--headless')
+        options.add_experimental_option('excludeSwitches', ['enable-automation'])
+        options.add_argument("--lang=en")
+        options.add_argument(r'user-data-dir=C:\Users\FZH\AppData\Local\Google\Chrome\User Data')
+        driver = webdriver.Chrome(chrome_options=options)
 
-    dateTimeXpath = '//a[@href="' + PicUrl + '"]'
+    except:
+        print('\nFailed to open Chrome')
+        with open("FailedList.txt", "a") as f:
+            f.write(FirstUrl + '\n')
+        driver.quit()
+        exit()
+
+    # try:
+    user_url_name = re.split('/', FirstUrl)[3]
+    tweetid = re.split('/status/', FirstUrl)[1]
+    # print(user_url_name)
+    # print(tweetid)
+
+    xpath = '//a[contains(@href,"/status/' + tweetid + '")]'
+
     # print(xpath)
     driver.get(FirstUrl)
-    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, dateTimeXpath)))
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, xpath)))
+
+    username = re.split('/', driver.find_element_by_xpath(xpath).get_attribute('href'))[3]
+    dateTimeXpath = '//a[@href="/' + username + '/status/' + tweetid + '"]'
+    # print(username)
 
     print('title：', driver.title)
 
     dataText = driver.find_element_by_xpath(dateTimeXpath).text
-    print('post time:', dataText)
+    print('tweeted time:', dataText)
+
+    PicUrl = username + '/status/' + tweetid
+
+    # except:
+    #     print('\nFailed to analyse')
+    #     with open("FailedList.txt", "a") as f:
+    #         f.write(FirstUrl + '\n')
+    #     driver.quit()
+    #     exit()
 
     for i in range(1, 5):
         try:
-            xpath = '//*[@href="' + PicUrl + '/photo/' + str(i) + '"]'
+            xpath = '//*[@href="/' + PicUrl + '/photo/' + str(i) + '"]'
             pic = driver.find_element_by_xpath(xpath).find_element_by_tag_name("img").get_attribute('src')
             pic = re.split('\?', pic)[0] + '?format=jpg&name=large'
             # print(pic)
@@ -148,7 +174,7 @@ if __name__ == '__main__':
         path = setPath(username)
         makefolder(path)
         datetime = setTime(dataText)
-        # print('post time:', datetime)
+        # print('tweeted time:', datetime)
 
         saveImg(pic_list, datetime, path)
         driver.quit()
@@ -156,7 +182,7 @@ if __name__ == '__main__':
     else:
         print('No image in this tweet')
 
-    if videoExsit() == True:
+    if videoExsit():
         path = setPath(username)
         makefolder(path)
         datetime = setTime(dataText)
