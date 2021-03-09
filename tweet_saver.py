@@ -46,7 +46,7 @@ def getvideoURL(t=5):
                 video_url = tryele.find_element_by_tag_name('a').get_attribute('href')
                 return video_url
             except Exception:
-                print('Failed to get video URL')
+                print('\nFailed to get video URL')
 
 
 def saveImg(pic_list, datetime, path):
@@ -58,9 +58,11 @@ def saveImg(pic_list, datetime, path):
             # print(picname)
             filename = wget.download(i, path + '/' + picName)
             num += 1
-            print('Saved tweet image', filename)
+            print('\nSaved tweet image', filename)
     except:
-        print('Failed to save tweet images')
+        print('\nFailed to save tweet images')
+        with open("FailedList.txt", "a") as f:
+            f.write(FirstUrl + '\n')
         driver.quit()
         exit()
 
@@ -77,10 +79,12 @@ def saveVideo(datetime, path):
         videoName = re.sub(r'[\\/:*?"<>|]', '', datetime) + '.mp4'
         print(videoName)
         filename = wget.download(video_url, path + '/' + videoName)
-        print('Saved tweet video ', filename)
+        print('\nSaved tweet video ', filename)
 
     except:
-        print('Failed to save tweet video')
+        print('\nFailed to save tweet video')
+        with open("FailedList.txt", "a") as f:
+            f.write(FirstUrl + '\n')
         driver.quit()
         exit()
 
@@ -113,7 +117,7 @@ if __name__ == '__main__':
     options.add_argument('--headless')
     options.add_experimental_option('excludeSwitches', ['enable-automation'])
     options.add_argument("--lang=en")
-    options.add_argument(r'user-data-dir=C:\Users\username\AppData\Local\Google\Chrome\User Data')
+    options.add_argument(r'user-data-dir=C:\Users\[username]\AppData\Local\Google\Chrome\User Data')
     driver = webdriver.Chrome(chrome_options=options)
 
     PicUrl = re.split('twitter.com', FirstUrl)[1]
